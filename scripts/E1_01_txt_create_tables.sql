@@ -3,30 +3,25 @@ DECLARE
     v_log_id BIGINT;
     v_script_id INT := 1;  -- ejemplo
 BEGIN
-	
+-- 1. Registro del script en el inventario
 	INSERT INTO dqm_scripts_inventory (
-	    script_name,
-	    description,
-	    filename,
-	    created_by,
-		created_at
+	    script_name, description, created_by, created_at  
 	)
 	VALUES (
-	    'crear_tablas_txt',
-	    'Crea las tablas TXT_* para la etapa de Adquisición',
-	    '01_3a_crear_tablas_txt.sql',
+	    'E1_01_txt_create_tables.sql',
+	    'Crea las tablas TXT para la etapa de Adquisición',
 	    'Sarah',
 		NOW()
 	)
 	RETURNING script_id INTO v_script_id;
 
-
+-- 2. Registro del inicio de ejecución en el log
     INSERT INTO dqm_exec_log (script_id, started_at, status)
     VALUES (v_script_id, NOW(), 'RUNNING')
     RETURNING log_id INTO v_log_id;
 
 -----------------------------------------------------------
--- Inicio del proceso
+-- 3. Inicio del proceso
 
 
         CREATE TABLE txt_categories
@@ -37,6 +32,11 @@ BEGIN
             picture TEXT
         );
 
+-- 4. Registro de objetos creados
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_categories', 'table', v_script_id, NOW());
 
         CREATE TABLE txt_customers
         (      
@@ -52,6 +52,12 @@ BEGIN
             phone TEXT,
             fax TEXT
         );
+    
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_customers', 'table', v_script_id, NOW());
+
 
         CREATE TABLE txt_employee_territories
         (
@@ -59,6 +65,12 @@ BEGIN
             territory_id TEXT
 
         );
+
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_employee_territories', 'table', v_script_id, NOW());
+
 
 
         CREATE TABLE txt_employees
@@ -83,12 +95,23 @@ BEGIN
             photo_path TEXT
         );
 
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_employees', 'table', v_script_id, NOW());
+
 
         CREATE TABLE txt_shippers(
             shipper_id TEXT,
             company_name TEXT,
             phone TEXT
         );
+
+
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_shippers', 'table', v_script_id, NOW());
 
 
         CREATE TABLE txt_suppliers(
@@ -107,6 +130,12 @@ BEGIN
         );
 
 
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_suppliers', 'table', v_script_id, NOW());
+
+
         CREATE TABLE txt_products(
             product_id TEXT,
             product_name TEXT,
@@ -119,6 +148,11 @@ BEGIN
             reorder_level TEXT,
             discontinued TEXT
         );
+
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_products', 'table', v_script_id, NOW());
 
 
         CREATE TABLE txt_orders(
@@ -138,6 +172,11 @@ BEGIN
             ship_country TEXT
         );
 
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_orders', 'table', v_script_id, NOW());
+
 
         CREATE TABLE txt_order_details(    
             order_id TEXT,
@@ -147,11 +186,24 @@ BEGIN
             discount TEXT
         );
 
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_order_details', 'table', v_script_id, NOW());
+
+
         CREATE TABLE txt_regions
         (
             region_id TEXT,
             region_description TEXT
         );
+
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_regions', 'table', v_script_id, NOW());
+
+
 
         CREATE TABLE txt_territories
         (
@@ -159,6 +211,12 @@ BEGIN
             territory_description TEXT,
             region_id TEXT
         );
+
+        INSERT INTO dqm_object_inventory (
+            object_name, object_type, created_by_script, created_at)
+        VALUES (
+            'txt_territories', 'table', v_script_id, NOW());
+
 
 
 -- Fin del proceso
