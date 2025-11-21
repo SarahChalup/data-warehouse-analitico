@@ -1,7 +1,6 @@
 ---------------------------------------------------------------
---  E1_03_validacion_pk.sql
+--  E1_04_validacion_pk.sql
 --  Validación de claves primarias para tablas TXT
---  Incluye registro en DQM
 ---------------------------------------------------------------
 
 DO $$
@@ -19,7 +18,7 @@ BEGIN
         created_at
     )
     VALUES (
-        'E1_03_validacion_pk.sql',
+        'E1_04_validacion_pk.sql',
         'Validación de formato, nulos y duplicados de PK en tablas TXT',
         'Mariana',
         NOW()
@@ -46,7 +45,7 @@ BEGIN
 END $$;
 
 ---------------------------------------------------------------
--- VALIDACIONES PK POR TABLA TXT (11 tablas reales)
+-- VALIDACIONES PK POR TABLA TXT 
 ---------------------------------------------------------------
 
 
