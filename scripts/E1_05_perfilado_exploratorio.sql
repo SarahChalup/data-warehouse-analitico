@@ -174,3 +174,4 @@ WHERE units_in_stock ~ '^[0-9]+$' ORDER BY units_in_stock::numeric DESC LIMIT 5;
 -- Menos stock (sin contar los que tienen 0):
 SELECT product_name, units_in_stock::numeric FROM txt_products
 WHERE units_in_stock ~ '^[0-9]+$' AND units_in_stock::numeric > 0 ORDER BY units_in_stock::numeric ASC LIMIT 5;
+
