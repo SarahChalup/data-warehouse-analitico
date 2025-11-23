@@ -55,3 +55,11 @@ CREATE TABLE IF NOT EXISTS dqm_table_profile (
     executed_at    TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS dqm_validation_issues (
+    issue_id SERIAL PRIMARY KEY,
+    log_id BIGINT,             -- Para relacionar con la ejecución
+    table_name VARCHAR(50),    -- Dónde ocurrió
+    row_key VARCHAR(100),      -- El ID de la fila mala (category_id, order_id, etc)
+    issue_desc TEXT,           -- Qué regla rompió
+    created_at TIMESTAMP DEFAULT NOW()
+);
