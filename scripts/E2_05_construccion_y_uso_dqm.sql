@@ -125,28 +125,4 @@ BEGIN
         RAISE NOTICE 'Regla "%" ejecutada. Resultado: %. Fallos: % de % (% %%)', regla.nombre_regla, v_resultado, v_filas_fallidas, v_total_filas, round(v_porc_fallo, 2);
     END LOOP;
 END;
-$$;
-
-
--- =====================================================================
--- PASO 5: SIMULACIÓN DE USO REAL DURANTE UNA CARGA ETL (depende del punto 6)
--- =====================================================================
-DO $$
-DECLARE
-    v_log_id INTEGER; v_proceso TEXT := 'carga_fact_ventas_y_chequeo_dqm'; v_errores_criticos INTEGER;
-BEGIN
-    INSERT INTO DQM.log_procesos (proceso_nombre, fecha_inicio, estado) VALUES (v_proceso, NOW(), 'En Ejecucion') RETURNING log_id INTO v_log_id;
-    RAISE NOTICE 'Iniciando proceso ETL. Log ID: %', v_log_id;
-    RAISE NOTICE 'ETL: Simulación de carga de datos en dwa_fact_ventas... (hecho)';
-    RAISE NOTICE 'DQM: Iniciando chequeos de calidad para la tabla dwa_fact_ventas...';
-    CALL DQM.ejecutar_chequeos_calidad('dwa_fact_ventas', v_log_id);
-    RAISE NOTICE 'DQM: Chequeos de calidad finalizados.';
-    SELECT COUNT(*) INTO v_errores_criticos FROM DQM.resultados_calidad r JOIN DQM.reglas_calidad q ON r.regla_id = q.regla_id WHERE r.log_proceso_id = v_log_id AND r.resultado_final = 'Rechazado' AND q.umbral_error_porcentaje = 0.00;
-    IF v_errores_criticos > 0 THEN
-        UPDATE DQM.log_procesos SET fecha_fin = NOW(), estado = 'Fallido', mensaje = format('%s errores críticos de DQM encontrados. La carga debería ser revertida (ROLLBACK).', v_errores_criticos) WHERE log_id = v_log_id;
-        RAISE WARNING 'Proceso finalizado con ESTADO: FALLIDO. Errores críticos detectados.';
-    ELSE
-        UPDATE DQM.log_procesos SET fecha_fin = NOW(), estado = 'Exitoso', mensaje = 'El proceso finalizó y todos los chequeos de calidad críticos fueron aprobados.' WHERE log_id = v_log_id;
-        RAISE NOTICE 'Proceso finalizado con ESTADO: EXITOSO.';
-    END IF;
-END $$;
+-- hola
