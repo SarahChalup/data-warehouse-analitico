@@ -68,18 +68,29 @@ INSERT INTO md_relationships (parent_entity, parent_column, child_entity, child_
 ON CONFLICT (parent_entity, parent_column, child_entity, child_column) DO NOTHING;
 
 -- =====================================================================
--- PASO 3: DEFINICIÓN DE UN CONJUNTO COMPLETO DE REGLAS DE CALIDAD 
+-- PASO 3: DEFINICIÓN DE REGLAS DE CALIDAD ADAPTADAS A TU MODELO
 -- =====================================================================
-INSERT INTO DQM.reglas_calidad (nombre_regla, descripcion, entidad_objetivo, campo_objetivo, tipo_regla, umbral_error_porcentaje, query_sql_validacion) VALUES
-('VENTA_PRECIO_NO_NEGATIVO', 'El precio unitario en cada línea de venta no puede ser menor a cero.', 'dwa_fact_ventas', 'precio_unitario', 'Validez', 0.00, 'SELECT COUNT(*) FROM dwa_fact_ventas WHERE precio_unitario < 0'),
-('VENTA_CANTIDAD_NO_NEGATIVA', 'La cantidad vendida de un producto no puede ser cero o negativa.', 'dwa_fact_ventas', 'cantidad', 'Validez', 0.00, 'SELECT COUNT(*) FROM dwa_fact_ventas WHERE cantidad <= 0'),
-('VENTA_DESCUENTO_RANGO_VALIDO', 'El descuento aplicado debe estar entre 0 y 1 (0% y 100%).', 'dwa_fact_ventas', 'descuento', 'Validez', 0.50, 'SELECT COUNT(*) FROM dwa_fact_ventas WHERE descuento < 0 OR descuento > 1'),
-('VENTA_FK_CLIENTE_COMPLETA', 'Todas las ventas deben estar asociadas a un cliente válido.', 'dwa_fact_ventas', 'cliente_sk', 'Completitud', 1.00, 'SELECT COUNT(*) FROM dwa_fact_ventas WHERE cliente_sk IS NULL'),
-('VENTA_FK_PRODUCTO_COMPLETA', 'Todas las ventas deben estar asociadas a un producto válido.', 'dwa_fact_ventas', 'producto_sk', 'Completitud', 1.00, 'SELECT COUNT(*) FROM dwa_fact_ventas WHERE producto_sk IS NULL'),
-('CLIENTE_NOMBRE_COMPLETO', 'El nombre de la compañía del cliente no puede ser nulo o vacío.', 'dwa_dim_cliente', 'nombre_compania', 'Completitud', 2.00, 'SELECT COUNT(*) FROM dwa_dim_cliente WHERE nombre_compania IS NULL OR nombre_compania = '''''),
-('CONSISTENCIA_FK_PRODUCTO', 'Cada producto_sk en la tabla de hechos debe existir en la dimensión de productos.', 'dwa_fact_ventas', 'producto_sk', 'Consistencia', 0.00, 'SELECT COUNT(*) FROM dwa_fact_ventas f LEFT JOIN dwa_dim_producto d ON f.producto_sk = d.producto_sk WHERE d.producto_sk IS NULL AND f.producto_sk IS NOT NULL'),
-('CONSISTENCIA_FK_CLIENTE', 'Cada cliente_sk en la tabla de hechos debe existir en la dimensión de clientes.', 'dwa_fact_ventas', 'cliente_sk', 'Consistencia', 0.00, 'SELECT COUNT(*) FROM dwa_fact_ventas f LEFT JOIN dwa_dim_cliente d ON f.cliente_sk = d.cliente_sk WHERE d.cliente_sk IS NULL AND f.cliente_sk IS NOT NULL'),
-('UNICIDAD_CLIENTE_ACTUAL', 'No debería haber dos registros de clientes activos con el mismo ID de negocio (customer_id).', 'dwa_dim_cliente', 'customer_id', 'Unicidad', 0.00, 'SELECT COUNT(*) FROM (SELECT customer_id FROM dwa_dim_cliente WHERE es_actual = TRUE GROUP BY customer_id HAVING COUNT(*) > 1) AS duplicados')
+INSERT INTO dqm_reglas_calidad (nombre_regla, descripcion, entidad_objetivo, campo_objetivo, tipo_regla, umbral_error_porcentaje, query_sql_validacion) VALUES
+-- Reglas de Validez
+('VENTA_PRECIO_NO_NEGATIVO', 'El precio unitario no puede ser menor a cero.', 'fact_table', 'unit_price', 'Validez', 0.00,
+ 'SELECT COUNT(*) FROM fact_table WHERE unit_price < 0'),
+('VENTA_CANTIDAD_NO_NEGATIVA', 'La cantidad vendida no puede ser cero o negativa.', 'fact_table', 'quantity', 'Validez', 0.00,
+ 'SELECT COUNT(*) FROM fact_table WHERE quantity <= 0'),
+('VENTA_TOTAL_CONSISTENTE', 'El monto total derivado debe ser consistente con precio, cantidad y descuento.', 'fact_table', 'total_amount', 'Validez', 1.00,
+ 'SELECT COUNT(*) FROM fact_table WHERE total_amount <> (unit_price * quantity * (1 - discount))'),
+
+-- Reglas de Completitud
+('VENTA_FK_CLIENTE_COMPLETA', 'Todas las ventas deben estar asociadas a un cliente válido.', 'fact_table', 'customer_key', 'Completitud', 1.00,
+ 'SELECT COUNT(*) FROM fact_table WHERE customer_key IS NULL'),
+('CLIENTE_NOMBRE_COMPLETO', 'El nombre de la compañía del cliente no puede ser nulo o vacío.', 'dim_customer', 'company_name', 'Completitud', 2.00,
+ 'SELECT COUNT(*) FROM dim_customer WHERE company_name IS NULL OR company_name = '''''),
+
+-- Reglas de Consistencia
+('CONSISTENCIA_FK_PRODUCTO', 'Cada product_key en la tabla de hechos debe existir en la dimensión de productos.', 'fact_table', 'product_key', 'Consistencia', 0.00,
+ 'SELECT COUNT(*) FROM fact_table f LEFT JOIN dim_product d ON f.product_key = d.product_key WHERE d.product_key IS NULL AND f.product_key IS NOT NULL'),
+('CONSISTENCIA_FK_CLIENTE', 'Cada customer_key en la tabla de hechos debe existir en la dimensión de clientes.', 'fact_table', 'customer_key', 'Consistencia', 0.00,
+ 'SELECT COUNT(*) FROM fact_table f LEFT JOIN dim_customer d ON f.customer_key = d.customer_key WHERE d.customer_key IS NULL AND f.customer_key IS NOT NULL')
+
 ON CONFLICT (nombre_regla) DO NOTHING;
 
 -- =====================================================================
@@ -125,4 +136,4 @@ BEGIN
         RAISE NOTICE 'Regla "%" ejecutada. Resultado: %. Fallos: % de % (% %%)', regla.nombre_regla, v_resultado, v_filas_fallidas, v_total_filas, round(v_porc_fallo, 2);
     END LOOP;
 END;
--- hola
+$$;
