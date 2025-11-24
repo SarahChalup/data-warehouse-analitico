@@ -1,3 +1,45 @@
+DO $$
+DECLARE
+    v_log_id    BIGINT;
+    v_script_id INT;
+BEGIN
+    -------------------------------------------------------------------
+    -- 1. Registrar el script en dqm_scripts_inventory
+    -------------------------------------------------------------------
+    INSERT INTO dqm_scripts_inventory (
+        script_name,
+        description,
+        created_by,
+        created_at
+    )
+    VALUES (
+        'E1_05_perfilado_exploratorio.sql',
+        'Perfilado de los datos y validación básica',
+        'Agustina',
+        NOW()
+    )
+    RETURNING script_id INTO v_script_id;
+
+    -------------------------------------------------------------------
+    -- 2. Registrar inicio de ejecución en dqm_exec_log
+    -------------------------------------------------------------------
+    INSERT INTO dqm_exec_log (script_id, started_at, status)
+    VALUES (v_script_id, NOW(), 'RUNNING')
+    RETURNING log_id INTO v_log_id;
+
+    -------------------------------------------------------------------
+    -- 3. Cerrar el log del proceso (los SELECT se ejecutan fuera del DO)
+    -------------------------------------------------------------------
+    UPDATE dqm_exec_log
+    SET finished_at   = NOW(),
+        status        = 'OK',
+        message       = 'Script de validación ejecutado: revisar SELECT posteriores',
+        rows_processed = 0
+    WHERE log_id = v_log_id;
+
+END $$;
+
+
 -- PERFILADO
 -- 1. ANÁLISIS DE VOLUMEN Y COMPLETITUD
 
@@ -174,4 +216,5 @@ WHERE units_in_stock ~ '^[0-9]+$' ORDER BY units_in_stock::numeric DESC LIMIT 5;
 -- Menos stock (sin contar los que tienen 0):
 SELECT product_name, units_in_stock::numeric FROM txt_products
 WHERE units_in_stock ~ '^[0-9]+$' AND units_in_stock::numeric > 0 ORDER BY units_in_stock::numeric ASC LIMIT 5;
+
 
