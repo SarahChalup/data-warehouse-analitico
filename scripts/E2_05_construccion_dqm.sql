@@ -4,9 +4,9 @@
 DO $$
 DECLARE
     -- ... (Bloque de logging estándar del equipo) ...
-    v_script_nombre TEXT := 'E2_07_dqm_create_infrastructure.sql';
+    v_script_nombre TEXT := 'E2_05_dqm_create_infrastructure.sql';
     v_script_desc   TEXT := 'Crea la infraestructura del DQM: tablas de reglas/resultados. El procedimiento se crea por separado.';
-    v_created_by    TEXT := 'Agus';
+    v_created_by    TEXT := 'Agustina';
     v_log_id BIGINT; v_script_id INT; v_error_msg TEXT; v_detail TEXT;
 BEGIN
     -- 1. INICIO DEL LOG
