@@ -395,7 +395,7 @@ VALUES
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'company_name', 'VARCHAR(100)', 'Empresa', 'Nombre de la empresa cliente.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'city', 'VARCHAR(50)', 'Ciudad', 'Ciudad del cliente.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'country', 'VARCHAR(50)', 'País', 'País del cliente.', false, false, null, null, true, 'Data Architect', NOW()),
-((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'load_date', 'TIMESTAMP', 'Fecha de Carga', 'Auditoría de carga.', false, false, null, null, false, 'Data Architect', NOW())
+((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'load_date', 'TIMESTAMP', 'Fecha de Carga', 'Auditoría de carga.', false, false, null, null, false, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'contact_title', 'VARCHAR(100)', 'Cargo Contacto', 'Puesto laboral del contacto.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'address', 'VARCHAR(200)', 'Dirección', 'Calle y número.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_customers'), 'region', 'VARCHAR(50)', 'Región', 'Estado o provincia.', false, false, null, null, true, 'Data Architect', NOW()),
@@ -422,7 +422,7 @@ VALUES
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'order_date', 'DATE', 'Fecha Orden', 'Fecha en que se creó el pedido.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'ship_via', 'INTEGER', 'Transportista', 'ID de la empresa de envío.', false, true, 'dwm_shippers', 'shipper_id', true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'freight', 'NUMERIC(10,2)', 'Flete', 'Costo del envío.', false, false, null, null, true, 'Data Architect', NOW()),
-((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'load_date', 'TIMESTAMP', 'Fecha de Carga', 'Auditoría de carga.', false, false, null, null, false, 'Data Architect', NOW())
+((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'load_date', 'TIMESTAMP', 'Fecha de Carga', 'Auditoría de carga.', false, false, null, null, false, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'required_date', 'DATE', 'Fecha Requerida', 'Fecha límite para entregar el pedido.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'shipped_date', 'DATE', 'Fecha Envío', 'Fecha real en la que se envió.', false, false, null, null, true, 'Data Architect', NOW()),
 ((SELECT entity_id FROM md_entities WHERE entity_name = 'dwm_orders'), 'ship_name', 'VARCHAR(100)', 'Nombre Destinatario', 'Nombre de la persona/empresa que recibe.', false, false, null, null, true, 'Data Architect', NOW()),
@@ -589,7 +589,7 @@ VALUES
         ),
 
       
-             SELECT (SELECT COUNT(*) FROM md_entities) +
+         SELECT (SELECT COUNT(*) FROM md_entities) +
                 (SELECT COUNT(*) FROM md_attributes) +
                 (SELECT COUNT(*) FROM md_relationships)
             INTO v_total_validated_rows;
