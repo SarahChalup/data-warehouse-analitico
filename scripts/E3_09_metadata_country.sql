@@ -177,3 +177,13 @@ BEGIN
     WHERE log_id = v_log_id;
 
 END $$;
+
+UPDATE md_relationships
+SET parent_column = 'country_code'
+WHERE parent_entity = 'dim_country'
+  AND parent_column = 'country_name';
+
+SELECT parent_entity, parent_column, child_entity, child_column
+FROM md_relationships
+WHERE parent_entity = 'dim_country';
+
