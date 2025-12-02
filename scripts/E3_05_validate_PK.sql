@@ -18,7 +18,7 @@ BEGIN
         created_at
     )
     VALUES (
-        'E1_04_validacion_pk.sql',
+        'E3_05_validacion_pk.sql',
         'Validación de formato, nulos y duplicados de PK en tablas TXT',
         'Mariana',
         NOW()
@@ -79,7 +79,7 @@ WHERE LENGTH(customer_id) > 10;
 
 SELECT customer_id, COUNT(*) AS veces
 FROM txt_customers
-GROUP_BY customer_id
+group by customer_id
 HAVING COUNT(*) > 1;
 
 
@@ -152,7 +152,7 @@ WHERE supplier_id !~ '^[0-9]+$';
 
 SELECT supplier_id, COUNT(*) AS veces
 FROM txt_suppliers
-GROUP_BY supplier_id
+group by supplier_id
 HAVING COUNT(*) > 1;
 
 
@@ -222,7 +222,7 @@ WHERE region_id !~ '^[0-9]+$';
 
 SELECT region_id, COUNT(*) AS veces
 FROM txt_regions
-GROUP_BY region_id
+group by region_id
 HAVING COUNT(*) > 1;
 
 
@@ -239,6 +239,19 @@ WHERE LENGTH(territory_id) > 20;
 
 SELECT territory_id, COUNT(*) AS veces
 FROM txt_territories
-GROUP_BY territory_id
+group by territory_id
 HAVING COUNT(*) > 1;
 
+
+---------------------------------------------------------------
+-- 12. txt_country (PK TMP: territory_id VARCHAR(20))
+---------------------------------------------------------------
+SELECT COUNT(*) AS null_or_empty
+FROM txt_countries
+WHERE country_name IS NULL OR TRIM(country_name) = '';
+
+
+SELECT country_name, COUNT(*) AS veces
+FROM txt_countries
+group by country_name
+HAVING COUNT(*) > 1;

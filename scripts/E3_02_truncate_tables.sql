@@ -50,7 +50,7 @@ BEGIN
     TRUNCATE TABLE txt_suppliers;
     truncate table txt_shippers;
     truncate table txt_territories;
-    truncate table txt_employees_territories;
+    truncate table txt_employee_territories;
     truncate table txt_regions;
 
     -- =======================================================================
@@ -64,8 +64,8 @@ BEGIN
     TRUNCATE TABLE tmp_suppliers;
     truncate table tmp_shippers;
     truncate table tmp_territories;
-    truncate table tmp_employees_territories;
-    truncate table tmp_regions;
+    truncate table tmp_employee_territories;
+    truncate table tmp_region;
 
     -- =======================================================================
     -- Agregar campo active a tablas dwm si no existe
@@ -91,7 +91,7 @@ BEGIN
     alter table dwm_territories
     add column if not exists active boolean default true;
 
-    alter table dwm_regions
+    alter table dwm_region
     add column if not exists active boolean default true;
 
     alter table dwm_orders
@@ -100,7 +100,7 @@ BEGIN
     alter table dwm_order_details
     add column if not exists active boolean default true;
 
-    alter table dwm_employees_territories
+    alter table dwm_employee_territories
     add column if not exists active boolean default true;
 
 
@@ -121,20 +121,26 @@ BEGIN
     -- ==========================================================
     EXCEPTION
         WHEN OTHERS THEN
-            GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT, v_detail = PG_EXCEPTION_DETAIL;
+-- Capturar diagnóstico completo
+            GET STACKED DIAGNOSTICS 
+                v_msg = MESSAGE_TEXT, 
+                v_detail = PG_EXCEPTION_DETAIL,
+                v_hint = PG_EXCEPTION_HINT;
             
-            -- Actualizamos log a ERROR CRITICO
+            -- Imprimir en consola INMEDIATAMENTE (mira la pestaña "Mensajes" en pgAdmin)
+            RAISE NOTICE 'ERROR CAPTURADO: %', v_msg;
+            RAISE NOTICE 'DETALLE: %', v_detail;            
+
+
+-- Actualizamos log a ERROR CRITICO
             UPDATE dqm_exec_log
             SET finished_at = NOW(),
                 status = 'CRITICAL_ERROR', -- Diferente a error de datos
-                message = 'Fallo Técnico: ' || v_msg || ' Detalle: ' || v_detail
+                message = 'Fallo Técnico: ' || v_msg
             WHERE log_id = v_log_id;
 
-            -- IMPORTANTE: NO hacemos RAISE EXCEPTION aquí.
-            -- Hacemos RAISE NOTICE para que el script termine "bien" a ojos de SQL
-            -- y se guarde el INSERT/UPDATE del log.
-            RAISE NOTICE 'El script falló técnicamente. Revisa dqm_exec_log ID %', v_log_id;
-            
+           
     END; -- Fin del bloque principal
 
 END $$;
+

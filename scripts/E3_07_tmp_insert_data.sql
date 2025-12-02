@@ -2,14 +2,14 @@ DO $$
 DECLARE
     v_log_id BIGINT;
     v_script_id INT := 1;  -- ejemplo
-   v_total_validated_rows BIGINT := 0;
+   v_total_rows BIGINT := 0;
     v_current_table_rows BIGINT;
 	v_records RECORD;	
     v_msg text;
     v_detail text;
     v_hint text;
     v_context text;
-    v_script_name TEXT :=  'E1_07_tmp_insert_data.sql';
+    v_script_name TEXT :=  'E3_07_tmp_insert_data.sql';
 BEGIN
   -- Registrar el script en el inventario
   SELECT script_id INTO v_script_id 
@@ -217,6 +217,84 @@ BEGIN
 
 
 
+        INSERT INTO tmp_countries (
+            country_name,
+            density_per_km2,
+            abbreviation,
+            agricultural_land_percent,
+            land_area_km2,
+            armed_forces_size,
+            birth_rate,
+            calling_code,
+            capital_city,
+            co2_emissions,
+            cpi,
+            cpi_change_percent,
+            currency_code,
+            fertility_rate,
+            forested_area_percent,
+            gasoline_price,
+            gdp,
+            gross_primary_education_enrollment_percent,
+            gross_tertiary_education_enrollment_percent,
+            infant_mortality,
+            largest_city,
+            life_expectancy,
+            maternal_mortality_ratio,
+            minimum_wage,
+            official_language,
+            out_of_pocket_health_expenditure_percent,
+            physicians_per_thousand,
+            population,
+            labor_force_participation_percent,
+            tax_revenue_percent,
+            total_tax_rate_percent,
+            unemployment_rate_percent,
+            urban_population,
+            latitude,
+            longitude
+        )
+        SELECT 
+            country_name, -- Texto pasa directo
+            NULLIF(density_per_km2, '')::NUMERIC,
+            NULLIF(abbreviation, '')::VARCHAR(5),
+            NULLIF(agricultural_land_percent, '')::NUMERIC,
+            NULLIF(land_area_km2, '')::NUMERIC,
+            NULLIF(armed_forces_size, '')::INTEGER,
+            NULLIF(birth_rate, '')::NUMERIC,
+            NULLIF(calling_code, '')::VARCHAR(10),
+            capital_city, -- Texto pasa directo
+            NULLIF(co2_emissions, '')::NUMERIC,
+            NULLIF(cpi, '')::NUMERIC,
+            NULLIF(cpi_change_percent, '')::NUMERIC,
+            NULLIF(currency_code, '')::VARCHAR(10),
+            NULLIF(fertility_rate, '')::NUMERIC,
+            NULLIF(forested_area_percent, '')::NUMERIC,
+            NULLIF(gasoline_price, '')::NUMERIC,
+            NULLIF(gdp, '')::NUMERIC,
+            NULLIF(gross_primary_education_enrollment_percent, '')::NUMERIC,
+            NULLIF(gross_tertiary_education_enrollment_percent, '')::NUMERIC,
+            NULLIF(infant_mortality, '')::NUMERIC,
+            largest_city, -- Texto pasa directo
+            NULLIF(life_expectancy, '')::NUMERIC,
+            NULLIF(maternal_mortality_ratio, '')::INTEGER,
+            NULLIF(minimum_wage, '')::NUMERIC,
+            official_language, -- Texto pasa directo
+            NULLIF(out_of_pocket_health_expenditure_percent, '')::NUMERIC,
+            NULLIF(physicians_per_thousand, '')::NUMERIC,
+            NULLIF(population, '')::BIGINT,
+            NULLIF(labor_force_participation_percent, '')::NUMERIC,
+            NULLIF(tax_revenue_percent, '')::NUMERIC,
+            NULLIF(total_tax_rate_percent, '')::NUMERIC,
+            NULLIF(unemployment_rate_percent, '')::NUMERIC,
+            NULLIF(urban_population, '')::BIGINT,
+            NULLIF(latitude, '')::NUMERIC,
+            NULLIF(longitude, '')::NUMERIC
+        FROM txt_countries;
+
+
+      GET DIAGNOSTICS v_current_table_rows = ROW_COUNT;
+	    v_total_rows = v_total_rows + v_current_table_rows;
 
 -- =======================================================================    
 -- Si esta sección finaliza sin error, actualiza el log como 'OK'
@@ -224,7 +302,7 @@ BEGIN
         SET finished_at = NOW(),
             status = 'OK',
             message = 'Completado exitosamente.',
-            rows_processed = v_total_validated_rows -- El valor acumulado
+            rows_processed = v_total_rows -- El valor acumulado
         WHERE log_id = v_log_id;
 
      RAISE NOTICE 'Script finalizado exitosamente sin errores.';
@@ -234,20 +312,24 @@ BEGIN
     -- ==========================================================
     EXCEPTION
         WHEN OTHERS THEN
-            GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT, v_detail = PG_EXCEPTION_DETAIL;
+-- Capturar diagnóstico completo
+            GET STACKED DIAGNOSTICS 
+                v_msg = MESSAGE_TEXT, 
+                v_detail = PG_EXCEPTION_DETAIL,
+                v_hint = PG_EXCEPTION_HINT;
             
-            -- Actualizamos log a ERROR CRITICO
+            -- Imprimir en consola INMEDIATAMENTE (mira la pestaña "Mensajes" en pgAdmin)
+            RAISE NOTICE 'ERROR CAPTURADO: %', v_msg;
+            RAISE NOTICE 'DETALLE: %', v_detail;            
+
+
+-- Actualizamos log a ERROR CRITICO
             UPDATE dqm_exec_log
             SET finished_at = NOW(),
                 status = 'CRITICAL_ERROR', -- Diferente a error de datos
-                message = 'Fallo Técnico: ' || v_msg || ' Detalle: ' || v_detail
+                message = 'Fallo Técnico: ' || v_msg
             WHERE log_id = v_log_id;
 
-            -- IMPORTANTE: NO hacemos RAISE EXCEPTION aquí.
-            -- Hacemos RAISE NOTICE para que el script termine "bien" a ojos de SQL
-            -- y se guarde el INSERT/UPDATE del log.
-            RAISE NOTICE 'El script falló técnicamente. Revisa dqm_exec_log ID %', v_log_id;
-            
     END; -- Fin del bloque principal
 
 END $$;

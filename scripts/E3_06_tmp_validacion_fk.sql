@@ -18,7 +18,7 @@ BEGIN
         created_at
     )
     VALUES (
-        'E1_06_tmp_validacion_fk.sql',
+        'E3_06_tmp_validacion_fk.sql',
         'Valida integridad referencial (FK) entre tablas TMP',
         'Mariana',
         NOW()
@@ -195,3 +195,35 @@ WHERE e.reports_to IS NOT NULL
   AND jefe.employee_id IS NULL;
 
 
+--------------------------------------------------------------
+-- 1) CUSTOMERS.country -> COUNTRIES.country_name
+---------------------------------------------------------------
+SELECT c.*
+FROM txt_customers c
+LEFT JOIN txt_countries co
+       ON LOWER(TRIM(c.country)) = LOWER(TRIM(co.country_name))
+WHERE c.country IS NOT NULL
+  AND c.country <> ''
+  AND co.country_name IS NULL;
+
+---------------------------------------------------------------
+-- 2) SUPPLIERS.country -> COUNTRIES.country_name
+---------------------------------------------------------------
+SELECT s.*
+FROM txt_suppliers s
+LEFT JOIN txt_countries co
+       ON LOWER(TRIM(s.country)) = LOWER(TRIM(co.country_name))
+WHERE s.country IS NOT NULL
+  AND s.country <> ''
+  AND co.country_name IS NULL;
+
+---------------------------------------------------------------
+-- 3) EMPLOYEES.country -> COUNTRIES.country_name
+---------------------------------------------------------------
+SELECT e.*
+FROM txt_employees e
+LEFT JOIN txt_countries co
+       ON LOWER(TRIM(e.country)) = LOWER(TRIM(co.country_name))
+WHERE e.country IS NOT NULL
+  AND e.country <> ''
+  AND co.country_name IS NULL;

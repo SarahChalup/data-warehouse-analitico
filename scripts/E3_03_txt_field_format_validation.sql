@@ -852,6 +852,120 @@ BEGIN
           EXECUTE 'SELECT COUNT(*) FROM txt_territories' INTO v_current_table_rows;
           v_total_validated_rows := v_total_validated_rows + v_current_table_rows;
 
+
+
+
+-- =======================================================================
+    -- 1. VALIDACIONES DE TEXTO Y LONGITUD (VARCHARs)
+    -- =======================================================================
+
+    -- Validar abbreviation (Max 5 chars)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Abbreviation excede 5 caracteres'
+    FROM txt_countries
+    WHERE length(abbreviation) > 5
+       OR abbreviation = 'NULL';
+
+    -- Validar calling_code (Max 10 chars)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Calling Code excede 10 caracteres'
+    FROM txt_countries
+    WHERE length(calling_code) > 10;
+
+    -- Validar currency_code (Max 10 chars)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Currency Code excede 10 caracteres'
+    FROM txt_countries
+    WHERE length(currency_code) > 10;
+
+    -- =======================================================================
+    -- 2. VALIDACIONES DE ENTEROS (INTEGER / BIGINT)
+    -- Campos: armed_forces_size, maternal_mortality_ratio, population, urban_population
+    -- Regex: ^[0-9]+$ (Solo números positivos enteros)
+    -- =======================================================================
+
+    -- Armed Forces Size
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Armed Forces Size no es un entero válido'
+    FROM txt_countries
+    WHERE (armed_forces_size !~ '^[0-9]+$' AND armed_forces_size IS NOT NULL AND armed_forces_size != '')
+       OR armed_forces_size = 'NULL';
+
+    -- Population (BIGINT)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Population no es un entero válido'
+    FROM txt_countries
+    WHERE (population !~ '^[0-9]+$' AND population IS NOT NULL AND population != '')
+       OR population = 'NULL';
+
+    -- Urban Population
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Urban Population no es un entero válido'
+    FROM txt_countries
+    WHERE (urban_population !~ '^[0-9]+$' AND urban_population IS NOT NULL AND urban_population != '')
+       OR urban_population = 'NULL';
+
+    -- =======================================================================
+    -- 3. VALIDACIONES DE NUMÉRICOS / DECIMALES (NUMERIC)
+    -- Campos: density, gdp, cpi, birth_rate, lat, long, etc.
+    -- Regex: ^-?[0-9]+(\.[0-9]+)?$ (Soporta negativos y decimales con punto)
+    -- =======================================================================
+
+    -- Ejemplo: GDP (Producto Bruto Interno)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'GDP no es numérico'
+    FROM txt_countries
+    WHERE (gdp !~ '^-?[0-9]+(\.[0-9]+)?$' AND gdp IS NOT NULL AND gdp != '')
+       OR gdp = 'NULL';
+
+    -- Ejemplo: Latitude (Soporta negativos)
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Latitude no es válida'
+    FROM txt_countries
+    WHERE (latitude !~ '^-?[0-9]+(\.[0-9]+)?$' AND latitude IS NOT NULL AND latitude != '')
+       OR latitude = 'NULL';
+
+    -- Ejemplo: Longitude
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Longitude no es válida'
+    FROM txt_countries
+    WHERE (longitude !~ '^-?[0-9]+(\.[0-9]+)?$' AND longitude IS NOT NULL AND longitude != '')
+       OR longitude = 'NULL';
+
+    -- Validación genérica para otras tasas (Birth Rate, CPI, Tax, etc.)
+    -- Nota: Puedes repetir este bloque para cada columna específica si quieres el detalle exacto
+    INSERT INTO dqm_validation_issues (log_id, table_name, row_key, issue_desc)
+    SELECT v_log_id, 'txt_countries', country_name, 'Tasas/Porcentajes con formato inválido'
+    FROM txt_countries
+    WHERE (
+           (birth_rate !~ '^[0-9]+(\.[0-9]+)?$' AND birth_rate != '') OR
+           (cpi !~ '^[0-9]+(\.[0-9]+)?$' AND cpi != '') OR
+           (tax_revenue_percent !~ '^[0-9]+(\.[0-9]+)?$' AND tax_revenue_percent != '')
+          )
+       AND country_name IS NOT NULL;
+
+    -- =======================================================================
+    -- 4. REGISTRO DE REGLAS EN FIELD CHECK (Metadata)
+    -- =======================================================================
+    INSERT INTO dqm_field_checks (table_name, column_name, rule_type, rule_param, description)
+    VALUES 
+    ('txt_countries', 'abbreviation', 'LENGTH', '5', 'Max 5 chars ISO code'),
+    ('txt_countries', 'currency_code', 'LENGTH', '10', 'Max 10 chars'),
+    ('txt_countries', 'population', 'TYPE', 'BIGINT', 'Entero positivo'),
+    ('txt_countries', 'gdp', 'TYPE', 'NUMERIC', 'Valor monetario decimal'),
+    ('txt_countries', 'latitude', 'TYPE', 'NUMERIC', 'Coordenada decimal'),
+    ('txt_countries', 'longitude', 'TYPE', 'NUMERIC', 'Coordenada decimal');
+
+    -- =======================================================================
+    -- 5. CONTADORES
+    -- =======================================================================
+    EXECUTE 'SELECT COUNT(*) FROM txt_countries' INTO v_current_table_rows;
+    -- v_total_validated_rows := v_total_validated_rows + v_current_table_rows; -- Descomentar si usas acumulador
+
+
+
+
+
 -------------------------------------------------------------------
 
 -- Contamos cuántos errores encontramos en este log_id
