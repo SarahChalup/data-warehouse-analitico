@@ -49,6 +49,15 @@ BEGIN
     WHERE country IN ('UK', 'USA', 'Ireland');
 
 
+UPDATE dwm_employees
+SET country = CASE 
+    WHEN country = 'UK' THEN 'United Kingdom'
+    WHEN country = 'USA' THEN 'United States'
+    WHEN country = 'Ireland' THEN 'Republic of Ireland'
+END
+WHERE country IN ('UK', 'USA', 'Ireland');
+
+
 -- 418: Libya (LY) -> Capital Trípoli
     UPDATE dwm_countries 
     SET capital_city = 'Tripoli' 
